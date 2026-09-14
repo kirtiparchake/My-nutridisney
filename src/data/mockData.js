@@ -13,7 +13,7 @@ export const topics = [
 ]
 
 export const games = [
-  { id: 'quiz', title: 'Healthy Food Quiz', description: 'Put your food knowledge to the test with quick-fire questions.', icon: 'Brain', difficulty: 'Starter', color: 'sage', meta: '8 questions' },
+  { id: 'healthy-food-quiz', title: 'Healthy Food Quiz', description: 'Put your food knowledge to the test with quick-fire questions.', icon: 'Brain', difficulty: 'Starter', color: 'sage', meta: '10 questions' },
   { id: 'matching', title: 'Food Group Matching', description: 'Match everyday foods to the nutrients they bring.', icon: 'Waypoints', difficulty: 'Explorer', color: 'blue', meta: '12 cards' },
   { id: 'plate', title: 'Build a Balanced Plate', description: 'Create a colourful plate with a thoughtful mix of foods.', icon: 'CircleDot', difficulty: 'Explorer', color: 'coral', meta: 'Open play' },
   { id: 'healthy', title: 'Everyday Choices', description: 'Sort habits into choices that help you feel your best.', icon: 'Scale', difficulty: 'Starter', color: 'sun', meta: '10 rounds' },

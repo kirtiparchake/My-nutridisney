@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react'
 import { activities, blogs, games, topics } from './data/mockData'
 import { addChild, login, register } from './services/authService'
 import { getChildren, loginChild } from './services/childService'
+import { postQuizResult } from './services/progressService'
 import './App.css'
 
 const Icon = ({ name, size = 18 }) => { const Component = Icons[name] || Icons.Circle; return <Component size={size} strokeWidth={1.8} /> }
@@ -91,7 +92,7 @@ function App() {
 	else if (screen === 'settings') page = <SettingsPage parent={parent} />
 	else if (screen === 'child-home') page = <ApiChildHome setScreen={setScreen} child={child} />
 	else if (screen === 'learn') page = <LearnPage />
-	else if (screen === 'games') page = <ApiGamesPage />
+	else if (screen === 'games') page = <ApiGamesPage child={child} />
 	else if (screen === 'child-progress' || screen === 'challenges') page = <ProgressPage childMode />
 	return <ApiShell role={role} screen={screen} setScreen={setScreen} parent={parent} child={child}>{page}</ApiShell>
 }
@@ -111,6 +112,61 @@ function ApiChildHome({ setScreen, child }) {
 	return <><div className="child-welcome"><div><p className="eyebrow">Child learning space</p><h1>Ready to learn, {childName}?</h1><p>Your learning progress and activities will appear here as you explore.</p></div><div className="child-mascot"><Icon name="Sparkles" size={28} /><span>Age {child?.age || 'unknown'}<br />learner</span></div></div><div className="child-feature-grid"><button className="learning-hero" onClick={() => setScreen('learn')}><div><span className="eyebrow">Today's learning</span><h2>What makes a balanced plate?</h2><p>Explore the four parts that help make a meal feel complete.</p><span className="button button-light">Start learning <Icon name="ArrowRight" size={15} /></span></div><div className="plate-art"><span /><span /><span /><span /></div></button><section className="child-side-card"><div className="panel-heading"><div><p className="eyebrow">Daily challenge</p><h2>Challenges</h2></div><span className="challenge-icon"><Icon name="Target" size={18} /></span></div><p>No challenges completed yet.</p><div className="challenge-footer"><strong>Progress will appear here</strong><button className="text-button" onClick={() => setScreen('challenges')}>View <Icon name="ArrowRight" size={14} /></button></div></section></div><div className="child-section-heading"><div><p className="eyebrow">Choose your path</p><h2>Keep exploring</h2></div></div><div className="child-quick-grid"><button onClick={() => setScreen('games')}><span className="topic-icon icon-coral"><Icon name="Gamepad2" size={22} /></span><strong>Play a game</strong><small>Explore learning games</small><Icon name="ArrowUpRight" size={15} /></button><button onClick={() => setScreen('learn')}><span className="topic-icon icon-sage"><Icon name="BookOpen" size={22} /></span><strong>Learn something</strong><small>Explore nutrition topics</small><Icon name="ArrowUpRight" size={15} /></button><button onClick={() => setScreen('child-progress')}><span className="topic-icon icon-blue"><Icon name="TrendingUp" size={22} /></span><strong>My progress</strong><small>No progress data yet</small><Icon name="ArrowUpRight" size={15} /></button></div></>
 }
 
-function ApiGamesPage() {
-	return <><SectionHeader eyebrow="Play & practise" title="Games & activities" description="Short, thoughtful challenges that turn nutrition knowledge into confidence." /><div className="game-grid">{games.map((game) => <div className="game-card" key={game.id}><div className="game-card-top"><span className={`topic-icon icon-${game.color}`}><Icon name={game.icon} size={21} /></span><span className="difficulty">{game.difficulty}</span></div><h2>{game.title}</h2><p>{game.description}</p><div className="game-meta"><span>{game.meta}</span><span>Progress not available yet</span></div><div className="empty-state">No progress data yet.</div></div>)}</div></>
+const healthyFoodQuestions = [
+	{ question: 'Which food is a healthy source of vitamins?', options: ['Fruits', 'Candy', 'Soft drink', 'Chips'], correctAnswer: 'Fruits' },
+	{ question: 'Which drink is the best choice for staying hydrated?', options: ['Water', 'Soda', 'Energy drink', 'Sweetened juice'], correctAnswer: 'Water' },
+	{ question: 'Which food is a good source of protein?', options: ['Lentils', 'Lollipops', 'Fizzy sweets', 'Ice cubes'], correctAnswer: 'Lentils' },
+	{ question: 'Which food group helps provide steady energy?', options: ['Whole grains', 'Candy bars', 'Soft drinks', 'Gum'], correctAnswer: 'Whole grains' },
+	{ question: 'Which plate shows the most variety?', options: ['Vegetables, grains and beans', 'Only crisps', 'Only sweets', 'Only one food'], correctAnswer: 'Vegetables, grains and beans' },
+	{ question: 'Why is it helpful to eat different coloured vegetables?', options: ['They provide different nutrients', 'They all taste exactly the same', 'They replace the need for water', 'They are always sweet'], correctAnswer: 'They provide different nutrients' },
+	{ question: 'Which is a balanced snack?', options: ['Apple with yogurt', 'Only candy', 'Only soda', 'A spoonful of sugar'], correctAnswer: 'Apple with yogurt' },
+	{ question: 'What helps keep bones strong?', options: ['Calcium-rich foods', 'Sugary drinks', 'Skipping meals', 'Eating only chips'], correctAnswer: 'Calcium-rich foods' },
+	{ question: 'How can fibre help your body?', options: ['It supports comfortable digestion', 'It replaces sleep', 'It makes water unnecessary', 'It removes the need for movement'], correctAnswer: 'It supports comfortable digestion' },
+	{ question: 'What is a good everyday approach to healthy eating?', options: ['Enjoy variety over time', 'Eat one food forever', 'Skip every meal', 'Choose only sugary foods'], correctAnswer: 'Enjoy variety over time' },
+]
+
+function HealthyFoodQuiz({ child, onBack }) {
+	const [questionIndex, setQuestionIndex] = useState(0)
+	const [answers, setAnswers] = useState([])
+	const [result, setResult] = useState(null)
+	const [error, setError] = useState('')
+	const [submitting, setSubmitting] = useState(false)
+	const question = healthyFoodQuestions[questionIndex]
+	const selectedAnswer = answers[questionIndex]
+	const isLastQuestion = questionIndex === healthyFoodQuestions.length - 1
+
+	const selectAnswer = (answer) => {
+		setAnswers((currentAnswers) => {
+			const nextAnswers = [...currentAnswers]
+			nextAnswers[questionIndex] = answer
+			return nextAnswers
+		})
+	}
+
+	const submitQuiz = async () => {
+		if (!child?.id) {
+			setError('Your child login has expired. Please log in again.')
+			return
+		}
+		const score = healthyFoodQuestions.reduce((total, currentQuestion, index) => total + (answers[index] === currentQuestion.correctAnswer ? 1 : 0), 0)
+		setSubmitting(true)
+		setError('')
+		try {
+			await postQuizResult({ childId: child.id, gameId: 'healthy-food-quiz', score, totalQuestions: healthyFoodQuestions.length, pointsEarned: score * 10 })
+			setResult({ score, pointsEarned: score * 10 })
+		} catch (submitError) {
+			setError(submitError.message || 'Unable to save your quiz result. Please try again.')
+		} finally {
+			setSubmitting(false)
+		}
+	}
+
+	if (result) return <div className="modal-card quiz-modal"><span className="topic-icon icon-sage"><Icon name="CheckCircle2" size={22} /></span><p className="eyebrow">Quiz complete</p><h2>Quiz Complete!</h2><div className="quiz-result"><strong>Score:</strong><span>{result.score} / {healthyFoodQuestions.length}</span><strong>Points earned:</strong><span>{result.pointsEarned} Nutrition Points</span></div><Button onClick={onBack} icon="ArrowLeft">Back to Games</Button></div>
+
+	return <div className="modal-card quiz-modal"><button className="modal-close" onClick={onBack} aria-label="Close quiz"><Icon name="X" size={19} /></button><span className="topic-icon icon-sage"><Icon name="Brain" size={22} /></span><p className="eyebrow">Question {questionIndex + 1} of {healthyFoodQuestions.length}</p><h2>{question.question}</h2><div className="progress-track"><span className="progress-fill fill-sage" style={{ width: `${((questionIndex + 1) / healthyFoodQuestions.length) * 100}%` }} /></div><div className="quiz-options">{question.options.map((option) => <button key={option} onClick={() => selectAnswer(option)} className={selectedAnswer === option ? 'correct' : ''}><span>{String.fromCharCode(65 + question.options.indexOf(option))}</span>{option}</button>)}</div>{error && <p role="alert">{error}</p>}{isLastQuestion ? <Button onClick={submitQuiz} icon="Check" disabled={!selectedAnswer || submitting}>{submitting ? 'Submitting...' : 'Submit Quiz'}</Button> : <Button onClick={() => setQuestionIndex((index) => index + 1)} icon="ArrowRight" disabled={!selectedAnswer}>Next</Button>}</div>
+}
+
+function ApiGamesPage({ child }) {
+	const [activeQuiz, setActiveQuiz] = useState(false)
+	return <><SectionHeader eyebrow="Play & practise" title="Games & activities" description="Short, thoughtful challenges that turn nutrition knowledge into confidence." /><div className="game-grid">{games.map((game) => <div className="game-card" key={game.id}><div className="game-card-top"><span className={`topic-icon icon-${game.color}`}><Icon name={game.icon} size={21} /></span><span className="difficulty">{game.difficulty}</span></div><h2>{game.title}</h2><p>{game.description}</p><div className="game-meta"><span>{game.meta}</span><span>Progress not available yet</span></div>{game.id === 'healthy-food-quiz' ? <Button variant="outline" onClick={() => setActiveQuiz(true)} icon="ArrowRight">Start quiz</Button> : <div className="empty-state">No progress data yet.</div>}</div>)}</div>{activeQuiz && <div className="modal-backdrop"><HealthyFoodQuiz child={child} onBack={() => setActiveQuiz(false)} /></div>}</>
 }

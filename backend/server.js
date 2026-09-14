@@ -240,6 +240,90 @@ app.post('/api/children/login', async (req, res) => {
   }
 })
 
+app.post('/api/progress/quiz', async (req, res) => {
+  const childId = typeof req.body.childId === 'string' ? req.body.childId.trim() : ''
+  const gameId = typeof req.body.gameId === 'string' ? req.body.gameId.trim() : ''
+  const { score, totalQuestions, pointsEarned } = req.body
+
+  if (!childId || !ObjectId.isValid(childId)) {
+    return res.status(400).json({ message: 'A valid childId is required' })
+  }
+
+  if (!gameId || typeof score !== 'number' || !Number.isFinite(score) || score < 0 || typeof totalQuestions !== 'number' || !Number.isFinite(totalQuestions) || totalQuestions <= 0 || score > totalQuestions || typeof pointsEarned !== 'number' || !Number.isFinite(pointsEarned) || pointsEarned < 0) {
+    return res.status(400).json({ message: 'Invalid quiz result data' })
+  }
+
+  try {
+    const child = await database.collection('children').findOne({ _id: new ObjectId(childId) })
+    if (!child) {
+      return res.status(404).json({ message: 'Child not found' })
+    }
+
+    const progressId = new ObjectId()
+    await database.collection('quizProgress').updateOne(
+      { _id: progressId },
+      {
+        $setOnInsert: {
+          childId,
+          gameId,
+          score,
+          totalQuestions,
+          pointsEarned,
+        },
+        $currentDate: { completedAt: true },
+      },
+      { upsert: true },
+    )
+
+    const progress = await database.collection('quizProgress').findOne({ _id: progressId })
+    return res.status(201).json({
+      message: 'Quiz result saved',
+      progress: {
+        id: progress._id.toString(),
+        childId: progress.childId,
+        gameId: progress.gameId,
+        score: progress.score,
+        totalQuestions: progress.totalQuestions,
+        pointsEarned: progress.pointsEarned,
+        completedAt: progress.completedAt.toISOString(),
+      },
+    })
+  } catch (error) {
+    console.error('Quiz progress save failed:', error.message)
+    return res.status(500).json({ message: 'Unable to save quiz result' })
+  }
+})
+
+app.get('/api/progress/child/:childId', async (req, res) => {
+  const { childId } = req.params
+
+  if (!ObjectId.isValid(childId)) {
+    return res.status(400).json({ message: 'A valid childId is required' })
+  }
+
+  try {
+    const progressRecords = await database.collection('quizProgress').find({ childId }).sort({ completedAt: -1 }).toArray()
+    const total = await database.collection('quizProgress').aggregate([
+      { $match: { childId } },
+      { $group: { _id: null, totalPoints: { $sum: '$pointsEarned' } } },
+    ]).next()
+
+    return res.json({
+      progress: progressRecords.map((progress) => ({
+        gameId: progress.gameId,
+        score: progress.score,
+        totalQuestions: progress.totalQuestions,
+        pointsEarned: progress.pointsEarned,
+        completedAt: progress.completedAt.toISOString(),
+      })),
+      totalPoints: total?.totalPoints || 0,
+    })
+  } catch (error) {
+    console.error('Quiz progress lookup failed:', error.message)
+    return res.status(500).json({ message: 'Unable to load quiz progress' })
+  }
+})
+
 app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).json({
@@ -268,6 +352,7 @@ const startServer = async () => {
   await database.command({ ping: 1 })
   await database.collection('parents').createIndex({ email: 1 }, { unique: true })
   await database.collection('children').createIndex({ pin: 1 }, { unique: true })
+  await database.collection('quizProgress').createIndex({ childId: 1, completedAt: -1 })
 
   app.listen(PORT, () => {
     console.log(`NutriDisney backend running on port ${PORT}`)
