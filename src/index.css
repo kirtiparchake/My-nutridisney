@@ -4,3 +4,4 @@
 body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
+.empty-state { display: grid; gap: 12px; place-items: center; min-height: 120px; padding: 24px; color: #728078; text-align: center; }
