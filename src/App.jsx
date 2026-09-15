@@ -4,6 +4,7 @@ import { activities, blogs, games, topics } from './data/mockData'
 import { addChild, login, register } from './services/authService'
 import { getChildren, loginChild } from './services/childService'
 import { postQuizResult } from './services/progressService'
+import { GameHub } from './components/GamePlay'
 import './App.css'
 
 const Icon = ({ name, size = 18 }) => { const Component = Icons[name] || Icons.Circle; return <Component size={size} strokeWidth={1.8} /> }
@@ -92,7 +93,7 @@ function App() {
 	else if (screen === 'settings') page = <SettingsPage parent={parent} />
 	else if (screen === 'child-home') page = <ApiChildHome setScreen={setScreen} child={child} />
 	else if (screen === 'learn') page = <LearnPage />
-	else if (screen === 'games') page = <ApiGamesPage child={child} />
+	else if (screen === 'games') page = <GameHub child={child} />
 	else if (screen === 'child-progress' || screen === 'challenges') page = <ProgressPage childMode />
 	return <ApiShell role={role} screen={screen} setScreen={setScreen} parent={parent} child={child}>{page}</ApiShell>
 }

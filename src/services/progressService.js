@@ -1,7 +1,7 @@
 export const getProgress = async () => null
 
-export const postQuizResult = async ({ childId, gameId, score, totalQuestions, pointsEarned }) => {
-	const response = await fetch('/api/progress/quiz', {
+export const postGameResult = async ({ childId, gameId, score, totalQuestions, pointsEarned }) => {
+	const response = await fetch('/api/progress/game', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ childId, gameId, score, totalQuestions, pointsEarned }),
@@ -10,3 +10,5 @@ export const postQuizResult = async ({ childId, gameId, score, totalQuestions, p
 	if (!response.ok) throw new Error(data.message || 'Unable to save quiz result')
 	return data
 }
+
+export const postQuizResult = postGameResult

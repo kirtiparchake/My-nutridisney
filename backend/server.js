@@ -240,7 +240,7 @@ app.post('/api/children/login', async (req, res) => {
   }
 })
 
-app.post('/api/progress/quiz', async (req, res) => {
+const saveGameProgress = async (req, res) => {
   const childId = typeof req.body.childId === 'string' ? req.body.childId.trim() : ''
   const gameId = typeof req.body.gameId === 'string' ? req.body.gameId.trim() : ''
   const { score, totalQuestions, pointsEarned } = req.body
@@ -292,7 +292,10 @@ app.post('/api/progress/quiz', async (req, res) => {
     console.error('Quiz progress save failed:', error.message)
     return res.status(500).json({ message: 'Unable to save quiz result' })
   }
-})
+}
+
+app.post('/api/progress/game', saveGameProgress)
+app.post('/api/progress/quiz', saveGameProgress)
 
 app.get('/api/progress/child/:childId', async (req, res) => {
   const { childId } = req.params
