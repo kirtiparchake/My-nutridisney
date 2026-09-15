@@ -19,6 +19,7 @@ let database
 const allowedOrigins = new Set([
   'https://my-nutridisney.onrender.com',
   'https://my-nutridisney-oeoc-741dg7pke-kirti-parchakes-projects.vercel.app',
+  'https://my-nutridisney-187e-git-main-kirti-parchakes-projects.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ])
