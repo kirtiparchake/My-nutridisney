@@ -12,3 +12,23 @@ button { cursor: pointer; }
 .plate-choices .quiz-options { margin: 8px 0 0; }
 .game-question { margin: 18px 0 4px; color: var(--ink); }
 .quiz-result { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; padding: 18px; border-radius: 8px; background: var(--green-light); }
+.modal-backdrop { overflow-y: auto; }
+.quiz-modal { max-height: calc(100vh - 40px); overflow-y: auto; }
+.progress-summary { display: grid; gap: 18px; margin-bottom: 22px; }
+.progress-summary-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
+.progress-summary-stats span { display: flex; flex-direction: column; gap: 5px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: #fff; font-size: 11px; }
+.progress-summary-stats strong { color: var(--ink); font-family: 'Manrope', sans-serif; font-size: 21px; }
+.reward-panel { display: flex; justify-content: space-between; gap: 18px; padding: 20px; border-radius: 11px; color: var(--green); background: var(--sun-light); }
+.reward-panel h3 { margin: 6px 0; font-size: 18px; }
+.reward-panel > div { flex: 1; }
+.reward-panel .progress-track { max-width: 520px; margin: 12px 0 7px; background: rgba(255,255,255,.65); }
+.reward-panel p:last-child { color: #8c7549; font-size: 11px; }
+.reward-icon { display: grid; place-items: center; width: 48px; height: 48px; color: #a67a2d; border-radius: 50%; background: rgba(255,255,255,.7); }
+.game-performance, .real-activity-list { display: grid; gap: 11px; padding: 18px; border: 1px solid var(--line); border-radius: 11px; background: #fff; }
+.game-performance-row { display: grid; grid-template-columns: minmax(130px, 1fr) 2fr 42px; gap: 10px; align-items: center; color: var(--ink); font-size: 11px; }
+.game-performance-row strong { color: var(--green); text-align: right; font-size: 11px; }
+.real-activity-row, .parent-progress-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 0; border-top: 1px solid #edf0ec; color: var(--ink); font-size: 12px; }
+.real-activity-row small { color: var(--muted); font-size: 10px; }
+.parent-progress-row { grid-template-columns: 1fr 42px; align-items: center; }
+.parent-progress-row .progress-track { grid-column: 1 / -1; }
+@media (max-width: 760px) { .progress-summary-stats { grid-template-columns: repeat(2, 1fr); }.game-performance-row { grid-template-columns: 1fr 1.2fr 38px; }.quiz-modal { max-height: calc(100vh - 24px); } }
