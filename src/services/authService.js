@@ -1,5 +1,7 @@
+import { apiFetch } from './api'
+
 export const login = async ({ email, password }) => {
-	const response = await fetch('/api/auth/login', {
+	const response = await apiFetch('/api/auth/login', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ email, password }),
@@ -15,7 +17,7 @@ export const login = async ({ email, password }) => {
 	return data
 }
 export const register = async ({ name, email, password }) => {
-	const response = await fetch('/api/auth/register', {
+	const response = await apiFetch('/api/auth/register', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ name, email, password }),
@@ -32,7 +34,7 @@ export const register = async ({ name, email, password }) => {
 }
 
 export const addChild = async ({ parentId, name, age }) => {
-	const response = await fetch('/api/children', {
+	const response = await apiFetch('/api/children', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ parentId, name, age }),

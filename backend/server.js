@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const dotenv = require('dotenv')
 const path = require('path')
 const dns = require('dns')
@@ -15,6 +16,19 @@ const hashPassword = promisify(scrypt)
 
 let database
 
+const allowedOrigins = new Set([
+  'https://my-nutridisney.onrender.com',
+  'https://my-nutridisney-oeoc-741dg7pke-kirti-parchakes-projects.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+])
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true)
+    return callback(new Error('Origin is not allowed by CORS'))
+  },
+}))
 app.use(express.json())
 
 app.get('/', (req, res) => {

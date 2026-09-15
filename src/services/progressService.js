@@ -1,7 +1,9 @@
+import { apiFetch } from './api'
+
 export const getProgress = async () => null
 
 export const postGameResult = async ({ childId, gameId, score, totalQuestions, pointsEarned }) => {
-	const response = await fetch('/api/progress/game', {
+	const response = await apiFetch('/api/progress/game', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ childId, gameId, score, totalQuestions, pointsEarned }),
